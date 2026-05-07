@@ -1,12 +1,33 @@
 import { NextResponse } from 'next/server';
 
+function getTelegramConfig() {
+    return {
+        botToken: process.env.TELEGRAM_BOT_TOKEN,
+        chatId: process.env.TELEGRAM_CHAT_ID
+    };
+}
+
+export async function GET() {
+    const { botToken, chatId } = getTelegramConfig();
+
+    return NextResponse.json({
+        ok: true,
+        configured: Boolean(botToken && chatId)
+    });
+}
+
 export async function POST(request) {
     try {
-        const botToken = process.env.TELEGRAM_BOT_TOKEN;
-        const chatId = process.env.TELEGRAM_CHAT_ID;
+        const { botToken, chatId } = getTelegramConfig();
 
         if (!botToken || !chatId) {
-            return NextResponse.json({ ok: true, skipped: true });
+            return NextResponse.json(
+                {
+                    ok: false,
+                    error: 'Telegram notifier is missing TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID.'
+                },
+                { status: 500 }
+            );
         }
 
         const { userAgent, page, referrer } = await request.json();
