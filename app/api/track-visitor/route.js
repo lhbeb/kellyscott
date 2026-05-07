@@ -74,7 +74,7 @@ export async function POST(request) {
             );
         }
 
-        const { userAgent, page, referrer, fingerprint, fingerprintHash, userAgentData } = await request.json();
+        const { userAgent, page, referrer, domain, origin, url, fingerprint, fingerprintHash, userAgentData } = await request.json();
 
         const forwarded = request.headers.get('x-forwarded-for');
         const ip = forwarded ? forwarded.split(',')[0].trim() : (request.headers.get('x-real-ip') || 'Unknown');
@@ -110,6 +110,9 @@ export async function POST(request) {
             'New Visitor - Ballard Kelly Scott',
             '',
             `Time: ${now} (Morocco)`,
+            `Domain: ${formatValue(domain)}`,
+            `Origin: ${formatValue(origin)}`,
+            `URL: ${formatValue(url)}`,
             `Page: ${page || '/'}`,
             `Referrer: ${referrer || 'Direct'}`,
             '',

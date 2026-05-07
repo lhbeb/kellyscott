@@ -57,6 +57,9 @@ export default function VisitorTracker() {
                     fingerprint,
                     fingerprintHash,
                     userAgentData: navigator.userAgentData || null,
+                    domain: window.location.hostname,
+                    origin: window.location.origin,
+                    url: window.location.href,
                     page: pathname,
                     referrer: document.referrer || null
                 })
@@ -71,6 +74,9 @@ export default function VisitorTracker() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     userAgent: navigator.userAgent,
+                    domain: window.location.hostname,
+                    origin: window.location.origin,
+                    url: window.location.href,
                     page: pathname,
                     referrer: document.referrer || null
                 })
