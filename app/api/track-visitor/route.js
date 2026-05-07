@@ -7,11 +7,82 @@ function getTelegramConfig() {
     };
 }
 
+function normalizeIp(rawIp) {
+    if (!rawIp) return null;
+
+    const firstIp = rawIp.split(',')[0].trim();
+
+    if (!firstIp) return null;
+    if (firstIp.startsWith('::ffff:')) return firstIp.replace('::ffff:', '');
+
+    return firstIp;
+}
+
+function getRequestIp(request) {
+    const headerNames = [
+        'cf-connecting-ip',
+        'x-vercel-forwarded-for',
+        'x-forwarded-for',
+        'x-real-ip',
+        'fastly-client-ip',
+        'true-client-ip',
+        'x-client-ip'
+    ];
+
+    for (const headerName of headerNames) {
+        const ip = normalizeIp(request.headers.get(headerName));
+        if (ip) return ip;
+    }
+
+    return 'Unknown';
+}
+
 async function getIpLocation(ip) {
     if (!ip || ip === 'Unknown' || ip === '::1' || ip === '127.0.0.1') {
         return null;
     }
 
+    const ipWhoLocation = await getIpWhoLocation(ip);
+    if (ipWhoLocation) return ipWhoLocation;
+
+    return getIpApiLocation(ip);
+}
+
+async function getIpWhoLocation(ip) {
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 2500);
+        const response = await fetch(`https://ipwho.is/${ip}`, {
+            signal: controller.signal,
+            headers: { Accept: 'application/json' }
+        });
+        clearTimeout(timeout);
+
+        if (!response.ok) return null;
+
+        const data = await response.json();
+
+        if (!data.success) return null;
+
+        return {
+            country: data.country || null,
+            countryCode: data.country_code || null,
+            region: data.region || null,
+            city: data.city || null,
+            postal: data.postal || null,
+            latitude: data.latitude || null,
+            longitude: data.longitude || null,
+            timezone: data.timezone?.id || null,
+            org: data.connection?.org || data.connection?.isp || null,
+            asn: data.connection?.asn ? `AS${data.connection.asn}` : null,
+            source: 'ipwho.is'
+        };
+    } catch {
+        return null;
+    }
+}
+
+async function getIpApiLocation(ip) {
     try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 2500);
@@ -37,7 +108,8 @@ async function getIpLocation(ip) {
             longitude: data.longitude || null,
             timezone: data.timezone || null,
             org: data.org || null,
-            asn: data.asn || null
+            asn: data.asn || null,
+            source: 'ipapi.co'
         };
     } catch {
         return null;
@@ -76,8 +148,7 @@ export async function POST(request) {
 
         const { userAgent, page, referrer, domain, origin, url, fingerprint, fingerprintHash, userAgentData } = await request.json();
 
-        const forwarded = request.headers.get('x-forwarded-for');
-        const ip = forwarded ? forwarded.split(',')[0].trim() : (request.headers.get('x-real-ip') || 'Unknown');
+        const ip = getRequestIp(request);
         const location = await getIpLocation(ip);
 
         const ua = userAgent || '';
@@ -125,6 +196,7 @@ export async function POST(request) {
             `IP Timezone: ${formatValue(location?.timezone)}`,
             `Network: ${formatValue(location?.org)}`,
             `ASN: ${formatValue(location?.asn)}`,
+            `Geo Source: ${formatValue(location?.source)}`,
             '',
             `Device: ${device}`,
             `OS: ${os}`,
