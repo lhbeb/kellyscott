@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 150" role="img" aria-labelledby="title desc">
+  <title id="title">Ballard Kelly Scott</title>
+  <desc id="desc">Ballard Kelly Scott shop logo in white</desc>
+  <rect width="520" height="150" fill="none"/>
+  <circle cx="72" cy="75" r="55" fill="#FFFFFF"/>
+  <path d="M51 102V48h25c10 0 18 2 23 7 5 4 7 10 7 17 0 9-4 15-12 19l16 11H91L78 92H66v10H51zm15-23h11c9 0 13-3 13-9s-4-9-13-9H66v18z" fill="#3b82f6"/>
+  <text x="148" y="67" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="800" letter-spacing="0">
+    Ballard Kelly Scott
+  </text>
+  <text x="150" y="105" fill="#FFFFFF" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="600" letter-spacing="0">
+    BallardKellyScott.shop
+  </text>
+</svg>
